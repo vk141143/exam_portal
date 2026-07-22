@@ -18,6 +18,10 @@ dist-ssr
 .env
 .env.*
 
+# Netlify build output (generated at deploy time)
+.netlify/functions-internal
+.netlify/static
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
