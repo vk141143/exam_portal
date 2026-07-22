@@ -9,7 +9,6 @@ import { Mic, Wifi, Maximize2, AlertTriangle, Flag, SkipForward, RotateCcw } fro
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { getVideoSDKToken } from "@/lib/videosdk";
-
 export const Route = createFileRoute("/exam")({
   head: () => ({ meta: [{ title: "Exam in progress — Proctor" }] }),
   component: ExamBootstrap,
@@ -34,17 +33,23 @@ function ExamBootstrap() {
   useEffect(() => {
     if (!candidate.examId) { setError("No exam session found. Please log in again."); return; }
 
-    supabase.from("exams").select("room_id").eq("id", candidate.examId).single()
-      .then(async ({ data: examData }) => {
-        const rid = examData?.room_id ?? null;
+    (async () => {
+      try {
+        // Create a private VideoSDK room for this candidate
+        let candidateRoomId: string | null = null;
+        try {
+          const { createVideoRoom } = await import("@/lib/videosdk");
+          candidateRoomId = await createVideoRoom();
+        } catch { /* non-fatal — exam runs without video */ }
 
         // Register candidate session for admin live-monitoring
-        await supabase.from("exam_sessions").upsert({
+        const { error: upsertError } = await supabase.from("exam_sessions").upsert({
           candidate_id: candidate.id,
           candidate_name: candidate.name,
           exam_id: candidate.examId,
           exam_name: candidate.examName,
-          room_id: rid,
+          room_id: candidateRoomId ?? "",
+          candidate_room_id: candidateRoomId,
           question_index: 0,
           total_questions: 0,
           warnings: 0,
@@ -52,17 +57,19 @@ function ExamBootstrap() {
           started_at: new Date().toISOString(),
         }, { onConflict: "candidate_id" });
 
-        if (rid) {
-          // Only fetch token if there's a room to join
+        if (upsertError) console.error("exam_sessions upsert error:", upsertError);
+
+        if (candidateRoomId) {
           const tok = await getVideoSDKToken();
           setToken(tok);
-          setRoomId(rid);
+          setRoomId(candidateRoomId);
         } else {
-          // No room assigned — run exam without VideoSDK
           setRoomId("__none__");
         }
-      })
-      .catch(() => setError("Failed to start exam. Please refresh."));
+      } catch {
+        setError("Failed to start exam. Please refresh.");
+      }
+    })();
   }, [candidate.examId]);
 
   if (error) return (
