@@ -23,6 +23,7 @@ function Instructions() {
   const navigate = useNavigate();
 
   const candidate = (() => {
+    if (typeof window === "undefined") return {};
     try { return JSON.parse(sessionStorage.getItem("candidate") ?? "{}"); }
     catch { return {}; }
   })();

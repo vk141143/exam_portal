@@ -26,6 +26,7 @@ function ExamBootstrap() {
   const [error, setError] = useState<string | null>(null);
 
   const candidate = useMemo(() => {
+    if (typeof window === "undefined") return {};
     try { return JSON.parse(sessionStorage.getItem("candidate") ?? "{}"); }
     catch { return {}; }
   }, []);
@@ -106,6 +107,7 @@ function ExamUI({ leave }: { leave: () => void }) {
   const navigate = useNavigate();
 
   const candidate = useMemo(() => {
+    if (typeof window === "undefined") return {};
     try { return JSON.parse(sessionStorage.getItem("candidate") ?? "{}"); }
     catch { return {}; }
   }, []);
