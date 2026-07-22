@@ -1,6 +1,6 @@
 [build]
   command = "bun install && bun run build"
-  publish = ".netlify/static"
+  publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20"
@@ -9,6 +9,11 @@
 [functions]
   directory = ".netlify/functions-internal"
   node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/assets/*"
+  to = "/assets/:splat"
+  status = 200
 
 [[redirects]]
   from = "/*"
