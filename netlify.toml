@@ -1,12 +1,12 @@
 [build]
   command = "bun run build"
-  publish = "dist"
+  publish = ".output/public"
 
 [build.environment]
   NODE_VERSION = "20"
 
 [functions]
-  directory = "netlify/functions"
+  directory = ".netlify/functions-internal"
 
 [[redirects]]
   from = "/*"
