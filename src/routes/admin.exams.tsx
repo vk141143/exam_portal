@@ -9,7 +9,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Plus, Calendar, Clock, Users, Copy, Check } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { createVideoRoom } from "@/lib/videosdk";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/exams")({
@@ -95,10 +94,6 @@ function Exams() {
       return;
     }
     setSaving(true);
-    // Create a VideoSDK room for this exam — all candidates will share it
-    let roomId: string | null = null;
-    try { roomId = await createVideoRoom(); } catch { /* non-fatal */ }
-
     const { error } = await supabase.from("exams").insert({
       name: form.name,
       subject: form.subject,
@@ -108,7 +103,6 @@ function Exams() {
       ends_at: toUTCIso(form.ends_at),
       status: form.status,
       exam_code: generateCode(),
-      room_id: roomId,
       candidate_count: 0,
     });
     setSaving(false);

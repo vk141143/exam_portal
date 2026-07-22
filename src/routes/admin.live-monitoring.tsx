@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { getVideoSDKToken } from "@/lib/videosdk";
 
 export const Route = createFileRoute("/admin/live-monitoring")({
   head: () => ({ meta: [{ title: "Live Monitoring — Proctor Admin" }] }),
@@ -31,11 +30,8 @@ const VideoGrid = lazy(() => import("@/components/live-monitoring-grid"));
 function LiveMon() {
   const [sessions, setSessions] = useState<ExamSession[]>([]);
   const [filter, setFilter] = useState("");
-  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    getVideoSDKToken().then(setToken).catch(() => {});
-
     supabase
       .from("exam_sessions")
       .select("*")
@@ -98,13 +94,8 @@ function LiveMon() {
             {visible.map((s) => <WaitingCard key={s.candidate_id} session={s} />)}
           </div>
         }>
-          {visible.length > 0 && token && (
-            <VideoGrid sessions={visible} token={token} />
-          )}
-          {visible.length > 0 && !token && (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {visible.map((s) => <WaitingCard key={s.candidate_id} session={s} />)}
-            </div>
+          {visible.length > 0 && (
+            <VideoGrid sessions={visible} token="" />
           )}
         </Suspense>
       </div>

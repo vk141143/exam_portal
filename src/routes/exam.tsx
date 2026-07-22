@@ -7,7 +7,6 @@ import { Progress } from "@/components/ui/progress";
 import { Mic, Wifi, Maximize2, AlertTriangle, Flag, SkipForward, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { getVideoSDKToken } from "@/lib/videosdk";
 export const Route = createFileRoute("/exam")({
   head: () => ({ meta: [{ title: "Exam in progress — Proctor" }] }),
   component: ExamBootstrap,
@@ -20,7 +19,6 @@ const MAX_WARNINGS = 2;
 // ── Bootstrap: fetch shared room_id from exam, get token, mount provider ────
 function ExamBootstrap() {
   const [roomId, setRoomId] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const candidate = useMemo(() => {
@@ -34,21 +32,14 @@ function ExamBootstrap() {
 
     (async () => {
       try {
-        // Create a private VideoSDK room for this candidate
-        let candidateRoomId: string | null = null;
-        try {
-          const { createVideoRoom } = await import("@/lib/videosdk");
-          candidateRoomId = await createVideoRoom();
-        } catch { /* non-fatal — exam runs without video */ }
-
-        // Register candidate session for admin live-monitoring
-        const { error: upsertError } = await supabase.from("exam_sessions").upsert({
+        // Register candidate session
+        await supabase.from("exam_sessions").upsert({
           candidate_id: candidate.id,
           candidate_name: candidate.name,
           exam_id: candidate.examId,
           exam_name: candidate.examName,
-          room_id: candidateRoomId ?? "",
-          candidate_room_id: candidateRoomId,
+          room_id: "",
+          candidate_room_id: null,
           question_index: 0,
           total_questions: 0,
           warnings: 0,
@@ -58,13 +49,7 @@ function ExamBootstrap() {
 
         if (upsertError) console.error("exam_sessions upsert error:", upsertError);
 
-        if (candidateRoomId) {
-          const tok = await getVideoSDKToken();
-          setToken(tok);
-          setRoomId(candidateRoomId);
-        } else {
-          setRoomId("__none__");
-        }
+        setRoomId("__none__");
       } catch {
         setError("Failed to start exam. Please refresh.");
       }
