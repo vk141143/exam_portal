@@ -1,12 +1,16 @@
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const EDGE_FN_URL = `${SUPABASE_URL}/functions/v1/get-videosdk-token`;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim();
+const EDGE_FN_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/get-videosdk-token` : "";
+const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)?.trim();
 
 // In-memory token cache for the page session
 let _cachedToken: string | null = null;
 
 export async function getVideoSDKToken(): Promise<string> {
   if (_cachedToken) return _cachedToken;
+
+  if (!EDGE_FN_URL || !SUPABASE_ANON_KEY) {
+    throw new Error("VideoSDK configuration is incomplete. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
+  }
 
   const res = await fetch(EDGE_FN_URL, {
     method: "POST",
