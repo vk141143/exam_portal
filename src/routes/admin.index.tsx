@@ -13,10 +13,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
 
-export const Route = createFileRoute("/admin/")(({
+export const Route = createFileRoute("/admin/")({
   head: () => ({ meta: [{ title: "Dashboard — Proctor Admin" }] }),
   component: Dashboard,
-}));
+});
 
 type Stats = {
   totalCandidates: number;
