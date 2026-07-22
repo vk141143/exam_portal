@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { MeetingProvider, useMeeting } from "@videosdk.live/react-sdk";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -87,26 +86,9 @@ function ExamBootstrap() {
   // No VideoSDK room — run exam without live proctoring stream
   if (roomId === "__none__") return <ExamUI leave={() => {}} />;
 
-  return (
-    <MeetingProvider
-      config={{
-        meetingId: roomId,
-        micEnabled: true,
-        webcamEnabled: true,
-        name: candidate.name ?? "Candidate",
-        debugMode: false,
-      }}
-      token={token!}
-      joinWithoutUserInteraction
-    >
-      <ExamUIWithMeeting />
-    </MeetingProvider>
-  );
-}
-
-function ExamUIWithMeeting() {
-  const { leave } = useMeeting();
-  return <ExamUI leave={leave} />;
+  // Has a room — still run without MeetingProvider to avoid SSR issues
+  // VideoSDK join happens via the session registration above
+  return <ExamUI leave={() => {}} />;
 }
 
 // ── Main exam UI ─────────────────────────────────────────────────────────────
