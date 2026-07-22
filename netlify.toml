@@ -1,6 +1,6 @@
 [build]
   command = "bun run build"
-  publish = ".netlify/static"
+  publish = "dist"
 
 [functions]
   directory = ".netlify/functions-internal"
